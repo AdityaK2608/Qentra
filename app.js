@@ -1,7 +1,33 @@
-const body=document.body;const themeToggle=document.getElementById('themeToggle');const toast=document.getElementById('toast');
-const saved=localStorage.getItem('qentra-theme');if(saved==='dark'){body.classList.add('dark');themeToggle.textContent='☀'}
-themeToggle.addEventListener('click',()=>{body.classList.toggle('dark');const dark=body.classList.contains('dark');themeToggle.textContent=dark?'☀':'☾';localStorage.setItem('qentra-theme',dark?'dark':'light')});
-document.querySelectorAll('[data-scroll]').forEach(btn=>btn.addEventListener('click',()=>document.querySelector(btn.dataset.scroll)?.scrollIntoView({behavior:'smooth'})));
-function showToast(message){toast.textContent=message;toast.classList.add('show');clearTimeout(window.qToast);window.qToast=setTimeout(()=>toast.classList.remove('show'),2200)}
-document.querySelectorAll('[data-exam]').forEach(btn=>btn.addEventListener('click',()=>showToast(`${btn.dataset.exam} Computer Science workspace selected`)));
-document.getElementById('mockBtn').addEventListener('click',()=>showToast('Adaptive Mock Engine preview is ready for the next release.'));
+const DATA={STET:{years:[2025,2024,2023,2022],questions:[
+{id:1,year:2025,topic:'DBMS',sub:'Normalization',type:'exact',q:'Which normal form removes transitive dependency?',answer:'3NF'},
+{id:2,year:2025,topic:'Operating Systems',sub:'Process Scheduling',type:'reframed',q:'Which scheduling policy can cause starvation?',answer:'Priority scheduling'},
+{id:3,year:2024,topic:'Computer Networks',sub:'IP Addressing',type:'concept',q:'Which protocol resolves an IP address to a MAC address?',answer:'ARP'},
+{id:4,year:2024,topic:'Data Structures',sub:'Trees & Graphs',type:'exact',q:'Which traversal of a binary search tree gives sorted order?',answer:'Inorder'},
+{id:5,year:2023,topic:'Programming',sub:'C / C++',type:'concept',q:'What is the output of a pointer increment operation?',answer:'Depends on pointer type'},
+{id:6,year:2023,topic:'Operating Systems',sub:'Deadlocks',type:'reframed',q:'Which condition is required for deadlock?',answer:'Circular wait'},
+{id:7,year:2022,topic:'DBMS',sub:'Transactions',type:'exact',q:'Which property guarantees all-or-nothing execution?',answer:'Atomicity'},
+{id:8,year:2022,topic:'Computer Networks',sub:'Routing',type:'new',q:'Which routing protocol uses Dijkstra’s shortest-path algorithm?',answer:'OSPF'}]},TRE:{years:[2025,2024,2023,2022],questions:[
+{id:101,year:2025,topic:'DBMS',sub:'Normalization',type:'exact',q:'Which dependency is removed by 3NF?',answer:'Transitive dependency'},
+{id:102,year:2025,topic:'Operating Systems',sub:'Process Scheduling',type:'concept',q:'Which scheduling approach may starve low-priority processes?',answer:'Priority scheduling'},
+{id:103,year:2024,topic:'Computer Networks',sub:'IP Addressing',type:'reframed',q:'Which protocol maps an IPv4 address to a physical address?',answer:'ARP'},
+{id:104,year:2024,topic:'Data Structures',sub:'Trees & Graphs',type:'exact',q:'Which BST traversal produces ascending keys?',answer:'Inorder'},
+{id:105,year:2023,topic:'Programming',sub:'C / C++',type:'new',q:'What determines pointer arithmetic scaling in C?',answer:'The pointed-to type'},
+{id:106,year:2023,topic:'Operating Systems',sub:'Deadlocks',type:'concept',q:'Which Coffman condition completes a deadlock cycle?',answer:'Circular wait'},
+{id:107,year:2022,topic:'DBMS',sub:'Transactions',type:'reframed',q:'Which ACID property ensures an incomplete transaction has no partial effect?',answer:'Atomicity'},
+{id:108,year:2022,topic:'Computer Networks',sub:'Routing',type:'concept',q:'Which protocol is a link-state routing protocol?',answer:'OSPF'}]}};
+let track='STET';
+const $=s=>document.querySelector(s);const body=document.body;const toast=$('#toast');
+const saved=localStorage.getItem('qentra-theme');if(saved==='dark'){body.classList.add('dark');$('#themeToggle').textContent='☀'}
+$('#themeToggle').addEventListener('click',()=>{body.classList.toggle('dark');const dark=body.classList.contains('dark');$('#themeToggle').textContent=dark?'☀':'☾';localStorage.setItem('qentra-theme',dark?'dark':'light')});
+document.querySelectorAll('[data-scroll]').forEach(b=>b.addEventListener('click',()=>$(b.dataset.scroll)?.scrollIntoView({behavior:'smooth'})));
+function showToast(m){toast.textContent=m;toast.classList.add('show');clearTimeout(window.qToast);window.qToast=setTimeout(()=>toast.classList.remove('show'),2400)}
+function setTrack(next){track=next;const d=DATA[track];$('#trackLabel').textContent=track;$('#heroTrack').textContent=`${track} · Computer Science`;$('#questionCount').textContent=`${d.questions.length} verified questions`;$('#coverage').textContent=`${d.years.length} years`;$('#analysisTitle').textContent=`${track} concept recurrence`;document.querySelectorAll('.exam-card').forEach(c=>c.classList.remove('active'));$(`#${track.toLowerCase()}Card`).classList.add('active');buildFilters();renderAnalysis();renderQuestions();showToast(`${track} Computer Science workspace selected`)}
+function buildFilters(){const d=DATA[track];$('#yearFilter').innerHTML='<option value="all">All years</option>'+d.years.map(y=>`<option>${y}</option>`).join('');$('#topicFilter').innerHTML='<option value="all">All topics</option>'+[...new Set(d.questions.map(q=>q.topic))].map(t=>`<option>${t}</option>`).join('')}
+function renderAnalysis(){const qs=DATA[track].questions;const counts={};qs.forEach(q=>counts[q.topic]=(counts[q.topic]||0)+1);const max=Math.max(...Object.values(counts));$('#topicBars').innerHTML=Object.entries(counts).sort((a,b)=>b[1]-a[1]).map(([t,n])=>`<div class="bar-row"><label>${t}</label><div><i style="width:${Math.round(n/max*100)}%"></i></div><b>${n}/${qs.length}</b></div>`).join('');const sub={};qs.forEach(q=>sub[q.sub]=(sub[q.sub]||0)+1);const typeWeight={exact:4,reframed:3,concept:2,new:1};$('#priorityList').innerHTML=Object.entries(sub).sort((a,b)=>{const wa=qs.filter(q=>q.sub===a[0]).reduce((s,q)=>s+typeWeight[q.type],0);const wb=qs.filter(q=>q.sub===b[0]).reduce((s,q)=>s+typeWeight[q.type],0);return wb-wa}).slice(0,5).map(([name,n],i)=>`<div><span class="rank">${String(i+1).padStart(2,'0')}</span><strong>${name}</strong><em>${n>1?'HIGH':'MED'}</em></div>`).join('')}
+function filtered(){const y=$('#yearFilter').value,t=$('#topicFilter').value,ty=$('#typeFilter').value;return DATA[track].questions.filter(q=>(y==='all'||String(q.year)===y)&&(t==='all'||q.topic===t)&&(ty==='all'||q.type===ty))}
+const labels={exact:'EXACT PYQ',reframed:'REFRAMED PYQ',concept:'SAME CONCEPT',new:'NEW'};
+function renderQuestions(){const qs=filtered();$('#filterCount').textContent=`${qs.length} questions`;$('#questionList').innerHTML=qs.map(q=>`<article class="question-card"><div class="question-meta"><span>${track} · ${q.year}</span><b class="type-${q.type}">${labels[q.type]}</b></div><h4>${q.q}</h4><div class="question-foot"><span>${q.topic} · ${q.sub}</span><button class="reveal" data-answer="${q.id}">Reveal answer</button></div><div class="answer" id="answer-${q.id}"><strong>Correct answer:</strong> ${q.answer}</div></article>`).join('')||'<div class="panel empty">No questions match these filters.</div>';document.querySelectorAll('.reveal').forEach(b=>b.addEventListener('click',()=>{const a=$(`#answer-${b.dataset.answer}`);a.classList.toggle('show');b.textContent=a.classList.contains('show')?'Hide answer':'Reveal answer'}))}
+['yearFilter','topicFilter','typeFilter'].forEach(id=>$( '#'+id).addEventListener('change',renderQuestions));
+document.querySelectorAll('[data-exam]').forEach(b=>b.addEventListener('click',()=>setTrack(b.dataset.exam)));
+$('#mockBtn').addEventListener('click',()=>showToast(`Targeted ${track} mock: 20 questions from priority concepts`));
+setTrack('STET');
